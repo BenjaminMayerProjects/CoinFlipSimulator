@@ -1,8 +1,10 @@
 package com.example.coinflipsimulator;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -22,18 +25,26 @@ public class MainActivity extends AppCompatActivity {
     private TextView resultTextView;
     private ImageView resultImageView;
     private FloatingActionButton flipFab;
+    private ActivityResultLauncher<Intent> vibrateToggle = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),result -> restoreSettingsFromPreferences()
+    );
+
+    private void restoreSettingsFromPreferences() {
+        //this will update the main activity to tell us the vibrate setting is now on.
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         resultTextView = findViewById(R.id.result_text_view);
         resultImageView = findViewById(R.id.result_image_view);
         flipFab = findViewById(R.id.flip_fab);
         flipFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                v.vibrate(500);
                 model.flipCoin();
                 if (model.isHeads()) {
                     resultTextView.setText(R.string.headsResult);
@@ -64,19 +75,18 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = 7;
+        int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == 7) {
-            resultTextView = findViewById(R.id.result_text_view);
-            resultTextView.setText(R.string.headsResult);
-            Toast.makeText(MainActivity.this, "This activity was created by Benji Mayer from Brooklyn NY. Feel free to reach out at 347-988-4500!", Toast.LENGTH_SHORT).show();
-            // Launch the settings activity
+        if (id == R.id.menu_settings) {
+            // launches the settings activity
+            Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+            vibrateToggle.launch(settingsIntent);
 
             return true;
         }
-        if (id == R.id.menu_about) {
-            Toast.makeText(this, "This activity was created by Benji Mayer from Brooklyn NY. Feel free to reach out at 347-988-4500!", Toast.LENGTH_SHORT).show();
+        else if(id == R.id.menu_about)
+        {
             // Launch the about activity
             Intent aboutIntent = new Intent(MainActivity.this, AboutActivity.class);
             startActivity(aboutIntent);
